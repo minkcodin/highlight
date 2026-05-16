@@ -92,9 +92,6 @@ services:
         - OTEL_COLLECTOR_IMAGE_NAME
     extra_hosts:
       - host.docker.internal:host-gateway
-    volumes:
-      - ./backend/localhostssl/server.crt:/server.crt:ro
-      - ./backend/localhostssl/server.key:/server.key:ro
     ports:
       - "14318:4318"
     env_file:
@@ -117,10 +114,6 @@ services:
       - "13112:8082"
     volumes:
       - highlight-data:/highlight-data
-      - ./backend/env.enc:/build/env.enc:ro
-      - ./backend/env.enc.dgst:/build/env.enc.dgst:ro
-      - ./backend/localhostssl/server.key:/build/localhostssl/server.key:ro
-      - ./backend/localhostssl/server.crt:/build/localhostssl/server.crt:ro
     env_file:
       - .env
 
@@ -130,9 +123,6 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    volumes:
-      - ./backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key:ro
-      - ./backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem:ro
     ports:
       - "13110:3000"
     env_file:

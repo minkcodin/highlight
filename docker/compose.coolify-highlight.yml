@@ -120,7 +120,7 @@ services:
       - -lc
       - |
         set -eu
-        go run ./migrations/main.go
+        /usr/local/go/bin/go run ./migrations/main.go
         touch /tmp/backend-migrate-ready
         tail -f /dev/null
     env_file:

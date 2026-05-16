@@ -119,6 +119,7 @@ services:
       - /bin/sh
       - -lc
       - |
+        set -eu
         go run ./migrations/main.go
         touch /tmp/backend-migrate-ready
         tail -f /dev/null
@@ -141,16 +142,27 @@ services:
       - /bin/bash
       - -lc
       - |
+        set -euo pipefail
         until kafka-topics --bootstrap-server kafka:9092 --list >/dev/null 2>&1; do
           sleep 2
         done
         prefix="$${KAFKA_ENV_PREFIX:-$${DOPPLER_CONFIG}}"
         topic="$${KAFKA_TOPIC}"
+        if [[ -z "$${topic}" ]]; then
+          echo "KAFKA_TOPIC is required"
+          exit 1
+        fi
+        if [[ -z "$${prefix}" ]]; then
+          echo "KAFKA_ENV_PREFIX or DOPPLER_CONFIG is required"
+          exit 1
+        fi
         if [[ "$${ENVIRONMENT}" == "dev" || "$${ENVIRONMENT}" == "test" ]]; then
           topic="$${prefix}_$${topic}"
         fi
         for suffix in "" "_datasync" "_batched" "_traces" "_metric_sum" "_metric_histogram" "_metric_summary"; do
-          kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic "$${topic}$${suffix}" --partitions 8 --replication-factor 1
+          full_topic="$${topic}$${suffix}"
+          kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic "$${full_topic}" --partitions 8 --replication-factor 1
+          kafka-topics --bootstrap-server kafka:9092 --describe --topic "$${full_topic}" >/dev/null
         done
         touch /tmp/kafka-topics-ready
         tail -f /dev/null

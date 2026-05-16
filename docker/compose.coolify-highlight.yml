@@ -106,10 +106,32 @@ services:
     env_file:
       - .env
 
+  backend-migrate:
+    logging: *local-logging
+    build:
+      dockerfile: ./docker/backend.Dockerfile
+      context: .
+      target: backend-build
+    working_dir: /highlight/backend
+    command:
+      - go
+      - run
+      - ./migrations/main.go
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   backend:
     logging: *local-logging
     image: ${BACKEND_IMAGE_NAME}
     restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend-migrate:
+        condition: service_completed_successfully
     ports:
       - "13112:8082"
     volumes:

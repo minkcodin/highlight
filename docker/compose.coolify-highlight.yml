@@ -108,23 +108,33 @@ services:
 
   backend-migrate:
     logging: *local-logging
+    restart: unless-stopped
     build:
       dockerfile: ./docker/backend.Dockerfile
       context: .
       target: backend-build
     working_dir: /highlight/backend
     command:
-      - go
-      - run
-      - ./migrations/main.go
+      - /bin/sh
+      - -lc
+      - |
+        go run ./migrations/main.go
+        touch /tmp/backend-migrate-ready
+        tail -f /dev/null
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /tmp/backend-migrate-ready ]"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
     depends_on:
       postgres:
         condition: service_healthy
 
   kafka-init:
     logging: *local-logging
+    restart: unless-stopped
     image: ${KAFKA_IMAGE_NAME}
     command:
       - /bin/bash
@@ -141,8 +151,15 @@ services:
         for suffix in "" "_datasync" "_batched" "_traces" "_metric_sum" "_metric_histogram" "_metric_summary"; do
           kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic "$${topic}$${suffix}" --partitions 8 --replication-factor 1
         done
+        touch /tmp/kafka-topics-ready
+        tail -f /dev/null
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /tmp/kafka-topics-ready ]"]
+      interval: 5s
+      timeout: 5s
+      retries: 60
     depends_on:
       kafka:
         condition: service_started
@@ -155,9 +172,9 @@ services:
       postgres:
         condition: service_healthy
       backend-migrate:
-        condition: service_completed_successfully
+        condition: service_healthy
       kafka-init:
-        condition: service_completed_successfully
+        condition: service_healthy
     ports:
       - "13112:8082"
     volumes:

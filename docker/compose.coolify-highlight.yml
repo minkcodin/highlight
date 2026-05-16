@@ -60,7 +60,7 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ../scripts/migrations/init.sql:/root/init.sql:ro
+      - ./scripts/migrations/init.sql:/root/init.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -72,8 +72,8 @@ services:
     image: ${CLICKHOUSE_IMAGE_NAME}
     restart: unless-stopped
     volumes:
-      - ./config.xml:/etc/clickhouse-server/config.d/highlight.xml:ro
-      - ./users.xml:/etc/clickhouse-server/users.d/highlight.xml:ro
+      - ./docker/config.xml:/etc/clickhouse-server/config.d/highlight.xml:ro
+      - ./docker/users.xml:/etc/clickhouse-server/users.d/highlight.xml:ro
       - clickhouse-data:/var/lib/clickhouse
       - clickhouse-logs:/var/log/clickhouse-server
 
@@ -84,7 +84,7 @@ services:
       dockerfile: ./docker/collector.Dockerfile
       pull: true
       target: collector
-      context: ..
+      context: .
       args:
         - IN_DOCKER_GO
         - SSL
@@ -93,8 +93,8 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
-      - ../backend/localhostssl/server.crt:/server.crt:ro
-      - ../backend/localhostssl/server.key:/server.key:ro
+      - ./backend/localhostssl/server.crt:/server.crt:ro
+      - ./backend/localhostssl/server.key:/server.key:ro
     ports:
       - "14318:4318"
     env_file:
@@ -105,7 +105,7 @@ services:
     restart: unless-stopped
     build:
       dockerfile: ./packages/predictions/predictions.Dockerfile
-      context: ..
+      context: .
     env_file:
       - .env
 
@@ -117,10 +117,10 @@ services:
       - "13112:8082"
     volumes:
       - highlight-data:/highlight-data
-      - ../backend/env.enc:/build/env.enc:ro
-      - ../backend/env.enc.dgst:/build/env.enc.dgst:ro
-      - ../backend/localhostssl/server.key:/build/localhostssl/server.key:ro
-      - ../backend/localhostssl/server.crt:/build/localhostssl/server.crt:ro
+      - ./backend/env.enc:/build/env.enc:ro
+      - ./backend/env.enc.dgst:/build/env.enc.dgst:ro
+      - ./backend/localhostssl/server.key:/build/localhostssl/server.key:ro
+      - ./backend/localhostssl/server.crt:/build/localhostssl/server.crt:ro
     env_file:
       - .env
 
@@ -131,8 +131,8 @@ services:
     depends_on:
       - backend
     volumes:
-      - ../backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key:ro
-      - ../backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem:ro
+      - ./backend/localhostssl/server.key:/etc/ssl/private/ssl-cert.key:ro
+      - ./backend/localhostssl/server.pem:/etc/ssl/certs/ssl-cert.pem:ro
     ports:
       - "13110:3000"
     env_file:

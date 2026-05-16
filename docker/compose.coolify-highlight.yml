@@ -192,6 +192,27 @@ services:
       - "13112:8082"
     volumes:
       - highlight-data:/highlight-data
+    networks:
+      - default
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.middlewares.highlight-gzip.compress=true
+      - traefik.http.middlewares.highlight-redirect-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-highlight-backend.entryPoints=http
+      - traefik.http.routers.http-highlight-backend.middlewares=highlight-redirect-https
+      - traefik.http.routers.http-highlight-backend.rule=Host(`highlight.msvos.qzz.io`) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
+      - traefik.http.routers.http-highlight-backend.service=http-highlight-backend
+      - traefik.http.routers.https-highlight-backend.entryPoints=https
+      - traefik.http.routers.https-highlight-backend.middlewares=highlight-gzip
+      - traefik.http.routers.https-highlight-backend.priority=100
+      - traefik.http.routers.https-highlight-backend.rule=Host(`highlight.msvos.qzz.io`) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
+      - traefik.http.routers.https-highlight-backend.service=https-highlight-backend
+      - traefik.http.routers.https-highlight-backend.tls.certresolver=letsencrypt
+      - traefik.http.routers.https-highlight-backend.tls=true
+      - traefik.http.services.http-highlight-backend.loadbalancer.server.port=8082
+      - traefik.http.services.https-highlight-backend.loadbalancer.server.port=8082
     env_file:
       - .env
 
@@ -203,6 +224,27 @@ services:
       - backend
     ports:
       - "13110:3000"
+    networks:
+      - default
+      - coolify
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      - traefik.http.middlewares.highlight-gzip.compress=true
+      - traefik.http.middlewares.highlight-redirect-https.redirectscheme.scheme=https
+      - traefik.http.routers.http-highlight-frontend.entryPoints=http
+      - traefik.http.routers.http-highlight-frontend.middlewares=highlight-redirect-https
+      - traefik.http.routers.http-highlight-frontend.rule=Host(`highlight.msvos.qzz.io`) && PathPrefix(`/`)
+      - traefik.http.routers.http-highlight-frontend.service=http-highlight-frontend
+      - traefik.http.routers.https-highlight-frontend.entryPoints=https
+      - traefik.http.routers.https-highlight-frontend.middlewares=highlight-gzip
+      - traefik.http.routers.https-highlight-frontend.priority=10
+      - traefik.http.routers.https-highlight-frontend.rule=Host(`highlight.msvos.qzz.io`) && PathPrefix(`/`)
+      - traefik.http.routers.https-highlight-frontend.service=https-highlight-frontend
+      - traefik.http.routers.https-highlight-frontend.tls.certresolver=letsencrypt
+      - traefik.http.routers.https-highlight-frontend.tls=true
+      - traefik.http.services.http-highlight-frontend.loadbalancer.server.port=3000
+      - traefik.http.services.https-highlight-frontend.loadbalancer.server.port=3000
     env_file:
       - .env
 
@@ -215,3 +257,7 @@ volumes:
   zoo-log:
   zoo-data:
   highlight-data:
+
+networks:
+  coolify:
+    external: true

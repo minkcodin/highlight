@@ -202,12 +202,12 @@ services:
       - traefik.http.middlewares.highlight-redirect-https.redirectscheme.scheme=https
       - traefik.http.routers.http-highlight-backend.entryPoints=http
       - traefik.http.routers.http-highlight-backend.middlewares=highlight-redirect-https
-      - traefik.http.routers.http-highlight-backend.rule=Host(`highlight.msvos.qzz.io`) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
+      - traefik.http.routers.http-highlight-backend.rule=(Host(`highlight.msvos.qzz.io`) || Host(`highlight-api.msvos.qzz.io`)) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
       - traefik.http.routers.http-highlight-backend.service=http-highlight-backend
       - traefik.http.routers.https-highlight-backend.entryPoints=https
       - traefik.http.routers.https-highlight-backend.middlewares=highlight-gzip
       - traefik.http.routers.https-highlight-backend.priority=100
-      - traefik.http.routers.https-highlight-backend.rule=Host(`highlight.msvos.qzz.io`) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
+      - traefik.http.routers.https-highlight-backend.rule=(Host(`highlight.msvos.qzz.io`) || Host(`highlight-api.msvos.qzz.io`)) && (PathPrefix(`/public`) || PathPrefix(`/private`) || PathPrefix(`/health`))
       - traefik.http.routers.https-highlight-backend.service=https-highlight-backend
       - traefik.http.routers.https-highlight-backend.tls.certresolver=letsencrypt
       - traefik.http.routers.https-highlight-backend.tls=true
